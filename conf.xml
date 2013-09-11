@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sources>
+	<flux>
+		<desc>CNN Technology</desc>
+		<address>http://rss.cnn.com/rss/edition_technology.rss</address>
+		<category>Technology</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>CNN World</desc>
+		<address>http://rss.cnn.com/rss/edition_world.rss</address>
+		<category>World</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>REUTEURS People</desc>
+		<address>http://feeds.reuters.com/reuters/peopleNews</address>
+		<category>People</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>REUTEURS World</desc>
+		<address>http://feeds.reuters.com/Reuters/worldNews</address>
+		<category>World</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>REUTEURS Technology</desc>
+		<address>http://feeds.reuters.com/reuters/technologyNews</address>
+		<category>Technology</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>REUTEURS Sport</desc>
+		<address>http://feeds.reuters.com/reuters/sportsNews</address>
+		<category>Sport</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>REUTEURS Environment/Science</desc>
+		<address>http://feeds.reuters.com/reuters/environment</address>
+		<category>Environment/Science</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>THE GUARDIAN Environment/Science</desc>
+		<address>http://www.theguardian.com/environment/rss</address>
+		<category>Environment/Science</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>BBC Wolrd</desc>
+		<address>http://feeds.bbci.co.uk/news/world/rss.xml</address>
+		<category>World</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>BBC Technology</desc>
+		<address>http://feeds.bbci.co.uk/news/technology/rss.xml</address>
+		<category>Technology</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>BBC Environment/Science</desc>
+		<address>http://feeds.bbci.co.uk/news/science_and_environment/rss.xml</address>
+		<category>Environment/Science</category>
+		<active>1</active>
+	</flux>
+</sources>
