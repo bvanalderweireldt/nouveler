@@ -41,12 +41,25 @@ sub processCat{
 	foreach my $key (%hot)
 	{
 		if(defined $hot{$key} and scalar @{ $hot{$key} } > 7){
-			#print scalar @{ $hot{$key} } and print "\n" if defined @{ $hot{$key} };
-			print $key;
-			print Dumper(%hot->{$key});
-			print "\n";
+
+			#print $key;
+			my @tmp = deleteDuplicate($hot{$key});
+			#print Dumper(@tmp);
+			#print "\n";
 		}
 	}
 }
 
+sub deleteDuplicate {
+	my @array = shift(@_);
+	my @outputArray = ();
+	my %buffer = ();
 
+	foreach my $key (@array){
+		unless ($buffer{$key}) {
+			push @outputArray, $key;
+			$buffer{$key} = 1;
+		}
+	}
+	return @outputArray;
+}
