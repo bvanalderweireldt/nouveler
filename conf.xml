@@ -67,30 +67,6 @@
 		<active>1</active>
 	</flux>
 	<flux>
-		<desc>TELEGRAPH World</desc>
-		<address>http://www.telegraph.co.uk/news/worldnews/rss</address>
-		<category>World</category>
-		<active>1</active>
-	</flux>
-	<flux>
-		<desc>TELEGRAPH Technology</desc>
-		<address>http://www.telegraph.co.uk/technology/rss</address>
-		<category>Technology</category>
-		<active>1</active>
-	</flux>
-	<flux>
-		<desc>TELEGRAPH Sport</desc>
-		<address>http://www.telegraph.co.uk/sport/rss</address>
-		<category>Sport</category>
-		<active>1</active>
-	</flux>
-	<flux>
-		<desc>TELEGRAPH People</desc>
-		<address>http://www.telegraph.co.uk/news/celebritynews/rss</address>
-		<category>People</category>
-		<active>1</active>
-	</flux>
-	<flux>
 		<desc>INDEPENDENT World</desc>
 		<address>http://rss.feedsportal.com/c/266/f/3503/index.rss</address>
 		<category>World</category>
@@ -126,4 +102,17 @@
 		<category>Sport</category>
 		<active>1</active>
 	</flux>
+		<flux>
+		<desc>TELEGRAPH World</desc>
+		<address>http://www.telegraph.co.uk/news/worldnews/rss</address>
+		<category>World</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>TELEGRAPH People</desc>
+		<address>http://www.telegraph.co.uk/news/celebritynews/rss</address>
+		<category>People</category>
+		<active>1</active>
+	</flux>
+
 </sources>
