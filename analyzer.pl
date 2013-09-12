@@ -4,38 +4,76 @@ use strict;
 
 use DateTime qw();
 use MongoDB::MongoClient;
-use utf8;
-
+use XML::Simple;
 use Data::Dumper;
+use Text::Levenshtein qw(distance);
 
 my $client = MongoDB::MongoClient->new(host => 'localhost', port => 27017);
 my $database = $client->get_database( 'nouveler' );
 my $collection = $database->get_collection( 'data' );
 
-my $lastData = $collection->find({ issued => {'$gt' => DateTime->now->subtract(days => 1)} });
-my %hot;
-while (my $cursor = $lastData->next){
+my $xml = new XML::Simple;
+my $data = $xml->XMLin("category.xml");
 
-	my @values = split(' ', $cursor->{title});
-	
-	foreach my $val (@values) {
-		next if $val =~ m/^(\d+\$|\^|%|&|\*|\(|\)|\||the|be|to|of|and|a|in|that|have|I|it|for|not|on|with|he|as|you|do|at|this|but|his|by|from|they|we|say|her|she|or|an|will|my|one|all|would|there|their|so|up|out|if|about|who|get|which|go|me|when|make|can|like|time|no|just|him|know|people|into|year|your|good|some|could|them|see|other|than|then|now|look|only|come|its|over|think|back|after|use|two|how|our|work|first|well|way|even|new|want|because|any|these|give|day|most|us|why|more)$/i;
-		$val = lc($val);
-		if(exists($hot{$val})){
-			$hot{$val}++;
+foreach my $cat (@{ $data->{category} }){
+	processCat($cat);
+}
+
+sub processCat{
+	my $cat = shift( @_ );
+
+	my $lastData = $collection->find({ issued => {'$gt' => DateTime->now->subtract(days => 2)}, category => $cat });
+	my @hot;
+
+	my @objects = $lastData->all;
+	while (scalar(@objects) > 0){
+		my $element = pop @objects;
+		my @hotTmp;
+		foreach my $index (0 .. $#objects) {
+			if(asAtLeasXCommonWords($element->{title}, $objects[$index]->{title})){
+				if(scalar(compare( $element->{title}, $objects[$index]->{title} ) < 75 ) ){
+					my $tmpVar = $objects[$index]->{title};
+					push @hotTmp, $tmpVar;
+					delete $objects[$index];
+					@objects = grep defined, @objects;
+				}
+			}
 		}
-		else{
-			$hot{$val} = 1;
+		@hotTmp = grep defined, @hotTmp;
+
+		if(scalar(@hotTmp) > 0){
+			push @hotTmp, $element->{title};
+			push @hot, @hotTmp;
+		}
+
+		if(scalar(@hotTmp) > 2){
+			print Dumper(@hotTmp)."\n----------------\n";
+			#############################################
+			############## TODO #########################
+			##SAVE result to db, must select one entry###
 		}
 	}
-	while( $cursor->{title} =~ /\s((\s?[A-Z][a-zA-Z]+){1,4})\s/g){
-		next if $1 =~ m/the|has|is|why|buy|world|new/i;
-		#print "$1"."\n";
+}
+
+#Compare two strings, return percentage base difference, 0 mean no difference
+sub compare{
+	my $distance = distance $_[0], $_[1];
+	my $aLike = int((length($_[0]) + length($_[1])) / 2);
+	return 0 if $distance == 0;
+	return ( ( $distance * 100 ) / $aLike );
+}
+
+#Return true if the two given words have at least two common words
+sub asAtLeasXCommonWords{
+	my $X = 2;
+	my $match = 0;
+	my @words = split( ' ', $_[0] );
+
+	foreach my $word (@words){
+		if($_[1] =~ m/$word/g){
+			$match++;
+			last if $match == $X;
+		}
 	}
+	return $match == $X ? 1 : 0;
 }
-foreach my $key (%hot)
-{
-  print( $key."\n" ) if $hot{$key} > 5;
-}
-sort { $hot{$a} <=> $hot{$b} } keys %hot;
-#print Dumper(%hot);

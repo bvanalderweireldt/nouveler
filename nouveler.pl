@@ -29,7 +29,7 @@ sub processFlux{
 	for my $entry ($feed->entries) {
 
 			my $cleanTitle = $entry->title;
-			$cleanTitle =~ s/^(AUDIO|VIDEO)\s?:\s?//g; # We clean title name to avoid having VIDEO: .... or AUDIO: .....
+			$cleanTitle =~ s/^(AUDIO|VIDEO|LIVE)\s?:\s?//gi; # We clean title name to avoid having VIDEO: .... or AUDIO: .....
 
 			my $data = $collection->find_one({ title => $cleanTitle }); #If the title already exist, we consider it has been already saved
 			next if defined $data;
