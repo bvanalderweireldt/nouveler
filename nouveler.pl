@@ -37,11 +37,11 @@ sub processFlux{
 			my $cleanContent = $entry->content->body;
 			$cleanContent =~ s/<[^>]+>//gi; # We delete any tag from the content
 
-		    my $id = $collection->insert({ 	category => $flux->{category}, 
-		    								title => $cleanTitle,
-		    								link => $entry->link,
-		    								issued => $entry->issued,
-		    								content => $cleanContent });
+		    $collection->insert({ 	category => $flux->{category}, 
+		    						title => $cleanTitle,
+		    						link => $entry->link,
+    								issued => $entry->issued,
+    								content => $cleanContent });
 	}
 }
 
