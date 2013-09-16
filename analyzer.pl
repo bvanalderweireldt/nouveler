@@ -7,21 +7,24 @@ use MongoDB::MongoClient;
 use XML::Simple;
 use Text::Levenshtein qw(distance);
 use Config::Simple;
+use TryCatch;
 
 use Data::Dumper; #TODO DELETE ONLY USE FOR TESTING PURPOSE
 
-my $cfg = new Config::Simple('app.ini');
+my $cfg = new Config::Simple('app.conf');
 
-my $client = MongoDB::MongoClient->new(host => 'localhost', port => 27017);
-my $database = $client->get_database( $cfg->param('dbName') );
+my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
+										username => $cfg->param('username'), password => $cfg->param('password'), 
+										db_name => $cfg->param('dbName'));
+my $database = $client->get_database($cfg->param('dbName'));
 my $collection = $database->get_collection( $cfg->param('dbCollectionData') );
 my $hot = $database->get_collection( $cfg->param('dbCollectionHot') );
 
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($cfg->param('categoryFile'));
+my $data = $xml->XMLin($cfg->param('fluxFile'));
 
 my $commonMatch = $cfg->param('macthCommonWord');
-foreach my $cat (@{ $data->{category} }){
+foreach my $cat (@{ $data->{category}->{category} }){
 	processCat($cat);
 }
 
@@ -50,7 +53,7 @@ sub processData{
 		my @hotTmp = ();
 		foreach my $index (0 .. $#objects) {
 			if(asAtLeasXCommonWords($element->{title}, $objects[$index]->{title})){
-				if(scalar(compare( $element->{title}, $objects[$index]->{title} ) < 75 ) ){
+				if(scalar(compare( $element->{title}, $objects[$index]->{title} ) < $cfg->param('minLevenshteinPercMatch') ) ){
 					my $tmpVar = $objects[$index]->{title};
 					push @hotTmp, $tmpVar;
 					delete $objects[$index];
@@ -63,7 +66,7 @@ sub processData{
 		if(scalar(@hotTmp) > 0){
 			push @hotTmp, $element->{title};
 		}
-		if(scalar(@hotTmp) > $matchMin){
+		if(scalar(@hotTmp) >= $matchMin){
 			#Here we need to select only one title to save, the first in array is the one that have been compared to every other title,
 			#it's the link between all this titles.
 			my $title = shift ( @hotTmp );
@@ -90,10 +93,17 @@ sub asAtLeasXCommonWords{
 	my @words = split( ' ', $_[0] );
 
 	foreach my $word (@words){
-		next if $word =~ m/^($commonMatch)$/i;
-		if($_[1] =~ m/$word/g){
-			$match++;
-			last if $match == $X;
+		next if $word =~ m/\W/gi; #We don't want to match non word character, and we need to clean the string before inject it into a regex
+		next if $word =~ m/^($commonMatch|\W+|\s+)$/i; #We don't want to math common word
+		try{
+			if($_[1] =~ m/$word/g){
+				$match++;
+				last if $match == $X;
+			}			
+		}
+		catch{
+			print "Invalid regex for : ".$word;
+			next;
 		}
 	}
 	return $match == $X ? 1 : 0;

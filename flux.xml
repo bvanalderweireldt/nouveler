@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sources>
+<root>
+	<!-- Categories list to be parse independantly shile analyzing -->
+	<category>
+		<category>World</category>
+		<category>Technology</category>
+		<category>People</category>
+		<category>Sport</category>
+		<category>Environment/Science</category>
+	</category>
+	<!-- List of RSS data -->
 	<flux>
 		<desc>CNN Technology</desc>
 		<address>http://rss.cnn.com/rss/edition_technology.rss</address>
@@ -114,5 +123,34 @@
 		<category>People</category>
 		<active>1</active>
 	</flux>
-
-</sources>
+	<flux>
+		<desc>NEW YORK TIMES World</desc>
+		<address>http://rss.nytimes.com/services/xml/rss/nyt/World.xml</address>
+		<category>World</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>NEW YORK TIMES Technology</desc>
+		<address>http://rss.nytimes.com/services/xml/rss/nyt/Technology.xml</address>
+		<category>Technology</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>NEW YORK TIMES Sport</desc>
+		<address>http://rss.nytimes.com/services/xml/rss/nyt/Sports.xml</address>
+		<category>Sport</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>NEW YORK TIMES Environment/Science</desc>
+		<address>http://rss.nytimes.com/services/xml/rss/nyt/Science.xml</address>
+		<category>Environment/Science</category>
+		<active>1</active>
+	</flux>
+	<flux>
+		<desc>NEW YORK TIMES Environment/Science</desc>
+		<address>http://rss.nytimes.com/services/xml/rss/nyt/Environment.xml</address>
+		<category>Environment/Science</category>
+		<active>1</active>
+	</flux>
+</root>
