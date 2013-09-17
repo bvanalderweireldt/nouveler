@@ -1,57 +1,127 @@
+/*Global variable*/
 @imgPath: 'img/';
 @background: #EDEDF7;
 @font: #434346;
+@sizeClock: 7em;
+@rotateDuration: 5s;
+@rotateAngleStart: 0deg;
+@rotateAngleEnd: 360deg;
+@sizeNextPreviousArrow: 3em;
+@dataColor: #0E0831;
+@dataBorder: #F0F0F0;
+@font-face
+{
+	font-family: SansitaOne;
+	src: url('font/SansitaOne.ttf'),
+}
 
 body{
-	height: 100%;
+	height: auto;
 	width: 100%;
 	margin: 0;
 	padding: 0;
 }
 
+/*Clock*/
 .clock{
-	float: left;
-	margin: 0 0 0 40%;
-	width: 30%;
-	height: 10%;
+	position: absolute;
+	top: 5%;
+	left: 47%;
+	margin: 0 0 0 0;
+	width: @sizeClock;
+	height: @sizeClock;
+    display: inline-block;
 	img{
 		float: left;
-		height: 50%;
-		width: 50%;
+		height: @sizeClock;
+		width: @sizeClock;
 	}
 }
+.rotate{
+    animation-name: rotate @rotateDuration;
+    -webkit-animation:rotate @rotateDuration infinite;
+    animation-timing-function:linear;
+	-webkit-animation-timing-function:linear;
+}
+.rotate (@radius:0px){
+    transform: rotate(@radius);
+    -ms-transform: rotate(@radius);
+	-webkit-transform: rotate(@radius);
+}
+@keyframes rotate {
+    0% { .rotate(@rotateAngleStart); }
+    100% { .rotate(@rotateAngleEnd); }
+}
+@-webkit-keyframes rotate {
+    0% { .rotate(@rotateAngleStart); }
+    100% { .rotate(@rotateAngleEnd); }
+}
+
+/*Left and right selection arrow*/
 .rightArrow, .leftArrow{
-	width: 3%;
-	height: 3%;
-	margin: 20% 0 0 0;
+	width: @sizeNextPreviousArrow;
+	height: @sizeNextPreviousArrow;
 	padding: 0;
 	cursor: pointer;
+	position: absolute;
+	top: 50%;
+	img{
+		width: @sizeNextPreviousArrow;
+		height: @sizeNextPreviousArrow;
+	}
 }
 .leftArrow{
-	float: left;
+	left: 1%;
 }
 .rightArrow{
-	float: right;
+	right: 1%;
 }
-#gear{
-    animation-name: ckw 15s;
-    -webkit-animation: ckw 15s;
-    animation-iteration-count:infinite;
-	-webkit-animation-iteration-count:infinite; /*Safari and Chrome*/
-    transform-origin: 10% 100%;
-    -ms-transform-origin:10% 100%; /* IE 9 */
-	-webkit-transform-origin:10% 100%; /* Safari and Chrome */
-    display: inline-block;
+
+/*Date display*/
+.date{
+	.day,.month,.year{
+		display: inline;
+		font-family: SansitaOne, Arial;
+		font-size: 2em;
+		margin-left: 1em;
+	}
+	position: absolute;
+	right: 3%;
+	top: 8%;
+	width: auto;
 }
-@keyframes ckw {
-    0% {
-        transform: rotate(0deg);
-        -ms-transform: rotate(0deg); /* IE 9 */
-		-webkit-transform: rotate(0deg); /* Safari and Chrome */
-    }
-    100% {
-        transform: rotate(360deg);
-        -ms-transform: rotate(360deg); /* IE 9 */
-		-webkit-transform: rotate(360deg); /* Safari and Chrome */
-    }
+
+/*Content*/
+.data{
+	font-family: Courier New, Arial;
+	font-size: 1em;
+	color: @dataColor;
+	background-color: @dataBorder;
+	width: 60%;
+	height: auto;
+	margin: 15% auto;
+	margin-bottom: 0;
+	box-shadow: 10px 10px 5px #888888;
+	padding: 1em;
+	text-align: left;
+	.trending{
+		width: 100%;
+		height: 90%;
+		border-bottom: 1 dashed white;
+	}
+	.all{
+		width: 100%;
+		display: none;
+		height: auto;
+	}
+	.find{
+		height: 4em;
+		width: 4em;
+		img{
+			height: 4em;
+			width: 4em;			
+		}
+		margin: 0 auto;
+		cursor: pointer;
+	}
 }

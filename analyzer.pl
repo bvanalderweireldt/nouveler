@@ -11,11 +11,19 @@ use TryCatch;
 
 use Data::Dumper; #TODO DELETE ONLY USE FOR TESTING PURPOSE
 
+my $numberOfDaysToScan;
+my ($arg) = @ARGV;
+if(defined $arg){
+	if($numberOfDaysToScan = ( $arg =~ m/^-days=(\d{1,2})$/) ){}
+	else{die('Wrong args...');}
+}
+
 my $cfg = new Config::Simple('app.conf');
 
 my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
 										username => $cfg->param('username'), password => $cfg->param('password'), 
 										db_name => $cfg->param('dbName'));
+
 my $database = $client->get_database($cfg->param('dbName'));
 my $collection = $database->get_collection( $cfg->param('dbCollectionData') );
 my $hot = $database->get_collection( $cfg->param('dbCollectionHot') );
@@ -28,14 +36,21 @@ foreach my $cat (@{ $data->{category}->{category} }){
 	processCat($cat);
 }
 
-my $allLastData = $collection->find({ issued => {'$gt' => DateTime->now->subtract(days => 1)} });
+my $dayFrom = DateTime->now->subtract( days => 0);
+my $dayTo = DateTime->from_epoch( epoch => $dayFrom->epoch );
+$dayFrom->set_hour(00);
+$dayFrom->set_minute(00);
+$dayTo->set_hour(23);
+$dayTo->set_minute(59);
+
+my $allLastData = $collection->find({ issued => {'$gt' => $dayFrom, '$lt' => $dayTo } });
 
 processData($allLastData, $cfg->param('superCat'), $cfg->param('minMatchAllTrigger'));
 
 sub processCat{
 	my $cat = shift( @_ );
 
-	my $lastData = $collection->find({ issued => {'$gt' => DateTime->now->subtract(days => 1)}, category => $cat });
+	my $lastData = $collection->find({ issued => {'$gt' => $dayFrom, '$lt' => $dayTo }, category => $cat });
 
 	processData( $lastData, $cat, $cfg->param('minMatchCatTrigger') );
 }
@@ -73,7 +88,7 @@ sub processData{
 			next if defined $hot->find_one({ title => $title, category => $cat });
 		    $hot->insert({ 	category => $cat, 
 									title => $title,
-									date => DateTime->now() });
+									date => DateTime->now });
 		}
 	}
 }
