@@ -1,0 +1,7 @@
+@imgPath: 'img/';
+@background: #EDEDF7;
+@font: #434346;
+
+body{
+	background-image: url('@{imgPath}clock.svg');
+}

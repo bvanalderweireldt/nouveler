@@ -1,0 +1,143 @@
+/*Global variable*/
+@imgPath: 'img/';
+@background: #EDEDF7;
+@font: #434346;
+@sizeClock: 7em;
+@rotateDuration: 5s;
+@rotateAngleStart: 0deg;
+@rotateAngleEnd: 360deg;
+
+@upMove: 100px;
+@upDuration: 2s;
+
+@sizeNextPreviousArrow: 3em;
+@dataColor: #0E0831;
+@dataBorder: #F0F0F0;
+@font-face
+{
+	font-family: SansitaOne;
+	src: url('font/SansitaOne.ttf'),
+}
+
+body{
+	height: auto;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+/*Clock*/
+.clock{
+	position: absolute;
+	top: 5%;
+	left: 47%;
+	margin: 0 0 0 0;
+	width: @sizeClock;
+	height: @sizeClock;
+    display: inline-block;
+	img{
+		float: left;
+		height: @sizeClock;
+		width: @sizeClock;
+	}
+}
+.rotate{
+    animation-name: rotate @rotateDuration;
+    animation-timing-function:linear;
+
+    -webkit-animation:rotate @rotateDuration infinite;
+	-webkit-animation-timing-function:linear;
+
+	-moz-animation:rotate @rotateDuration infinite;
+	-moz-animation-timing-function:linear;
+	
+	-ms-animation:rotate @rotateDuration infinite;
+	-ms-animation-timing-function:linear;
+	
+	-o-animation:rotate @rotateDuration infinite;
+	-o-animation-timing-function:linear;
+}
+.rotate (@radius:0px){
+    transform: rotate(@radius);
+    -ms-transform: rotate(@radius);
+	-webkit-transform: rotate(@radius);
+	-o-transform: rotate(@radius);
+	-moz-transform: rotate(@radius);
+}
+@keyframes rotate {
+    0% { .rotate(@rotateAngleStart); }
+    100% { .rotate(@rotateAngleEnd); }
+}
+@-webkit-keyframes rotate {
+    0% { .rotate(@rotateAngleStart); }
+    100% { .rotate(@rotateAngleEnd); }
+}
+
+/*Left and right selection arrow*/
+.rightArrow, .leftArrow{
+	width: @sizeNextPreviousArrow;
+	height: @sizeNextPreviousArrow;
+	padding: 0;
+	cursor: pointer;
+	position: absolute;
+	top: 50%;
+	img{
+		width: @sizeNextPreviousArrow;
+		height: @sizeNextPreviousArrow;
+	}
+}
+.leftArrow{
+	left: 1%;
+}
+.rightArrow{
+	right: 1%;
+}
+
+/*Date display*/
+.date{
+	.day,.month,.year{
+		display: inline;
+		font-family: SansitaOne, Arial;
+		font-size: 2em;
+		margin-left: 1em;
+	}
+	position: absolute;
+	right: 3%;
+	top: 8%;
+	width: auto;
+}
+
+/*Content*/
+.data{
+	font-family: Courier New, Arial;
+	font-size: 1em;
+	color: @dataColor;
+	background-color: @dataBorder;
+	width: 60%;
+	height: auto;
+	margin: 15% auto;
+	margin-bottom: 0;
+	box-shadow: 10px 10px 5px #888888;
+	padding: 1em;
+	text-align: left;
+	.trending{
+		width: 100%;
+		height: 90%;
+		border-bottom: 1 dashed white;
+	}
+	.all{
+		width: 100%;
+		display: none;
+		height: auto;
+	}
+	.find{
+		height: 4em;
+		width: 4em;
+		img{
+			height: 4em;
+			width: 4em;			
+		}
+		margin: 0 auto;
+		cursor: pointer;
+	}
+}

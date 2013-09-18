@@ -4,18 +4,47 @@ use strict;
 
 use XML::Feed;
 use XML::Simple;
-use Data::Dumper;
+use LWP::UserAgent;
 use MongoDB::MongoClient;
+use Config::Simple;
+use TryCatch;
+use Data::Dumper; #TODO DELETE ONLY USE FOR TESTING PURPOSE
 
-my $client = MongoDB::MongoClient->new(host => 'localhost', port => 27017);
-my $database = $client->get_database( 'nouveler' );
-my $collection = $database->get_collection( 'data' );
+###GLOBAL VARIABLE###
+###USE WITH CAUTIOUS#
+my $cfg;my $collection;my $ua;my $data;
+###END GLOBAL V#####
 
-my $xml = new XML::Simple;
-my $data = $xml->XMLin("conf.xml");
+###MAIN###
+$cfg = new Config::Simple('app.conf');
+connectDb(\$collection);
+$ua = LWP::UserAgent->new;
+$ua->timeout($cfg->param('timeout'));
+$data = loadFlux();
 
 foreach my $flux (@{ $data->{flux} }){
-	processFlux($flux) if $flux->{active} == '1';
+	try{
+		processFlux($flux) if $flux->{active} == '1';
+	}
+	catch{
+		print "Something went wrong while parsing : ".$flux->{desc};
+	}
+}
+###END MAIN###
+
+sub loadFlux{
+	my $xml = new XML::Simple;
+	return $xml->XMLin($cfg->param('fluxFile'));
+}
+
+sub connectDb{
+	my ($collection) = @_;
+	my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
+											username => $cfg->param('username'), password => $cfg->param('password'), 
+											db_name => $cfg->param('dbName'));
+
+	my $database = $client->get_database($cfg->param('dbName'));
+	${$collection} = $database->get_collection( $cfg->param('dbCollectionData') );
 }
 
 #Process every flux, download and then save it into DB
@@ -23,7 +52,11 @@ sub processFlux{
 
 	my $flux = shift(@_);
 
-	my $feed = XML::Feed->parse(URI->new($flux->{address}))
+	my $response = $ua->get($flux->{address});
+	
+	print "Can't get : ".$flux->{address} and return if $response->is_error;
+
+	my $feed = XML::Feed->parse(\$response->content)
 	    or die XML::Feed->errstr;
 
 	for my $entry ($feed->entries) {
@@ -44,4 +77,3 @@ sub processFlux{
     								content => $cleanContent });
 	}
 }
-
