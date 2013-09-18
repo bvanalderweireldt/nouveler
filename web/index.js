@@ -157,7 +157,7 @@ Global Variable, i know it s bad
 
   constructList = function(json) {
     var returnList, row, _i, _len;
-    if (json) {
+    if (json[0]) {
       returnList = '<ul>';
       for (_i = 0, _len = json.length; _i < _len; _i++) {
         row = json[_i];
@@ -165,7 +165,7 @@ Global Variable, i know it s bad
       }
       return returnList + '</ul>';
     } else {
-      return 'Their is no availaible data at that time';
+      return '<p>Their is no availaible data back at that time</p>';
     }
   };
 

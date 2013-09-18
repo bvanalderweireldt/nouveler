@@ -101,10 +101,10 @@ processAll = (all) ->
 Build a ul/li list from a json object
 ###
 constructList = (json) ->
-	if json
+	if json[0]
 		returnList = '<ul>'
 		for row in json
 			returnList = returnList + '<li>' + row.title + '</li>'
 		return returnList + '</ul>'	
 	else
-		return 'Their is no availaible data at that time'
+		return '<p>Their is no availaible data back at that time</p>'
