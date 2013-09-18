@@ -6,6 +6,10 @@
 @rotateDuration: 5s;
 @rotateAngleStart: 0deg;
 @rotateAngleEnd: 360deg;
+
+@upMove: 100px;
+@upDuration: 2s;
+
 @sizeNextPreviousArrow: 3em;
 @dataColor: #0E0831;
 @dataBorder: #F0F0F0;
@@ -39,14 +43,26 @@ body{
 }
 .rotate{
     animation-name: rotate @rotateDuration;
-    -webkit-animation:rotate @rotateDuration infinite;
     animation-timing-function:linear;
+
+    -webkit-animation:rotate @rotateDuration infinite;
 	-webkit-animation-timing-function:linear;
+
+	-moz-animation:rotate @rotateDuration infinite;
+	-moz-animation-timing-function:linear;
+	
+	-ms-animation:rotate @rotateDuration infinite;
+	-ms-animation-timing-function:linear;
+	
+	-o-animation:rotate @rotateDuration infinite;
+	-o-animation-timing-function:linear;
 }
 .rotate (@radius:0px){
     transform: rotate(@radius);
     -ms-transform: rotate(@radius);
 	-webkit-transform: rotate(@radius);
+	-o-transform: rotate(@radius);
+	-moz-transform: rotate(@radius);
 }
 @keyframes rotate {
     0% { .rotate(@rotateAngleStart); }

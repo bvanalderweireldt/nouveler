@@ -4,16 +4,16 @@ use strict;
 use Config::Simple;
 use MongoDB::MongoClient;
 use DateTime qw();
-use Data::Dumper;
+use Data::Dumper;##TODO DON'T NEED IN PRODUCTION
 use Log::Log4perl;
-
-Log::Log4perl::init('/home/bvanalder/Workspace-perl/nouveler/log4perl.conf'); #Load path from environment variable
-my $logger = Log::Log4perl->get_logger('nouveler');
-
 use CGI;
 use JSON;
 
-my $cfg = new Config::Simple('/home/bvanalder/Workspace-perl/nouveler/app.conf'); #Load path from environment variable
+my $cfg = new Config::Simple('/home/nouveler/app.conf') or die ('Can\'t load conf!!!');
+
+Log::Log4perl::init($cfg->param('log4perl'));
+
+my $logger = Log::Log4perl->get_logger('nouveler');
 
 my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
 										username => $cfg->param('username'), password => $cfg->param('password'), 
@@ -56,13 +56,13 @@ my @data = ();
 while ( my $row = $allData->next ){
 	push (@data, $row);
 }
-%json->{data} = \@data;
+$json{data} = \@data;
 
 my @hot = ();
 while ( my $row = $allHot->next ){
 	push (@hot, $row);
 }
-%json->{hot} = \@hot;
+$json{hot} = \@hot;
 
 
 print to_json( \%json, { allow_nonref => 1, pretty => 0} );

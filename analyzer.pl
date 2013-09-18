@@ -11,54 +11,79 @@ use TryCatch;
 
 use Data::Dumper; #TODO DELETE ONLY USE FOR TESTING PURPOSE
 
-my $numberOfDaysToScan;
+###GLOBAL VARIABLE###
+###USE WITH CAUTIOUS#
+my $numberOfDaysToScan = 1;my $collection;my $hot;my $cfg;my $commonMatch;##TODO CLEAN ALL THAT MESS....
+###END GLOBAL V#####
+
 my ($arg) = @ARGV;
 if(defined $arg){
-	if($numberOfDaysToScan = ( $arg =~ m/^-days=(\d{1,2})$/) ){}
+	if( ( $numberOfDaysToScan ) = ( $arg =~ m/^-days=(\d{1,2})$/) ){}
 	else{die('Wrong args...');}
 }
 
-my $cfg = new Config::Simple('app.conf');
+###MAIN###
+$cfg = new Config::Simple('app.conf'); ###Load conf
+connectDb(\$collection, \$hot);###Connect DB
+loadFlux();###Load every RSS flux
+$commonMatch = $cfg->param('macthCommonWord');###LOAD COMMON MATCH, DON'T WANT TO BE LOAD FROM CONF FOR EVERY COMPARAISON
+analyse($numberOfDaysToScan);
+###END MAIN###
 
-my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
-										username => $cfg->param('username'), password => $cfg->param('password'), 
-										db_name => $cfg->param('dbName'));
+sub analyse{
+	my ($numberOfDaysToScan) = @_;
 
-my $database = $client->get_database($cfg->param('dbName'));
-my $collection = $database->get_collection( $cfg->param('dbCollectionData') );
-my $hot = $database->get_collection( $cfg->param('dbCollectionHot') );
+	my $dayFrom;my $dayTo;
 
-my $xml = new XML::Simple;
-my $data = $xml->XMLin($cfg->param('fluxFile'));
+	for (my $var = 0; $var < $numberOfDaysToScan; $var++) {
+		buildDate($var, \$dayFrom, \$dayTo);
 
-my $commonMatch = $cfg->param('macthCommonWord');
-foreach my $cat (@{ $data->{category}->{category} }){
-	processCat($cat);
+		my $data = loadFlux();
+		foreach my $cat (@{ $data->{category}->{category} }){
+			processCat($cat, $dayFrom, $dayTo);
+		}
+		my $allLastData = $collection->find({ issued => {'$gt' => $dayFrom, '$lt' => $dayTo } });
+		processData($allLastData, $cfg->param('superCat'), $cfg->param('minMatchAllTrigger'), $dayFrom);	
+	}
 }
 
-my $dayFrom = DateTime->now->subtract( days => 0);
-my $dayTo = DateTime->from_epoch( epoch => $dayFrom->epoch );
-$dayFrom->set_hour(00);
-$dayFrom->set_minute(00);
-$dayTo->set_hour(23);
-$dayTo->set_minute(59);
+sub loadFlux{
+	my $xml = new XML::Simple;
+	return $xml->XMLin($cfg->param('fluxFile'));
+}
 
-my $allLastData = $collection->find({ issued => {'$gt' => $dayFrom, '$lt' => $dayTo } });
+sub connectDb{
+	my ($collection, $hot) = @_;
+	my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
+											username => $cfg->param('username'), password => $cfg->param('password'), 
+											db_name => $cfg->param('dbName'));
 
-processData($allLastData, $cfg->param('superCat'), $cfg->param('minMatchAllTrigger'));
+	my $database = $client->get_database($cfg->param('dbName'));
+	${$collection} = $database->get_collection( $cfg->param('dbCollectionData') );
+	${$hot} = $database->get_collection( $cfg->param('dbCollectionHot') );
+}
+
+sub buildDate{
+	my($numberOfDaysToScan, $dayFrom, $dayTo) = @_;
+
+	${$dayFrom} = DateTime->now->subtract( days => $numberOfDaysToScan);
+	${$dayTo} = DateTime->from_epoch( epoch => ${$dayFrom}->epoch );
+
+	${$dayFrom}->set_hour(00);
+	${$dayFrom}->set_minute(01);
+	${$dayTo}->set_hour(23);
+	${$dayTo}->set_minute(59);
+
+}
 
 sub processCat{
-	my $cat = shift( @_ );
-
+	my ($cat, $dayFrom, $dayTo) = @_ ;
 	my $lastData = $collection->find({ issued => {'$gt' => $dayFrom, '$lt' => $dayTo }, category => $cat });
-
-	processData( $lastData, $cat, $cfg->param('minMatchCatTrigger') );
+	processData( $lastData, $cat, $cfg->param('minMatchCatTrigger'), $dayFrom );
 }
 
 sub processData{
-	my $lastData = shift( @_ );
-	my $cat = shift( @_ );
-	my $matchMin =shift( @_ );
+	my ($lastData, $cat, $matchMin, $dayFrom ) = @_;
 	$matchMin = 2 unless defined $matchMin;
 
 	my @objects = $lastData->all;
@@ -88,7 +113,7 @@ sub processData{
 			next if defined $hot->find_one({ title => $title, category => $cat });
 		    $hot->insert({ 	category => $cat, 
 									title => $title,
-									date => DateTime->now });
+									date => $dayFrom });
 		}
 	}
 }

@@ -8,22 +8,19 @@ use LWP::UserAgent;
 use MongoDB::MongoClient;
 use Config::Simple;
 use TryCatch;
-
 use Data::Dumper; #TODO DELETE ONLY USE FOR TESTING PURPOSE
 
-my $cfg = new Config::Simple('app.conf');
+###GLOBAL VARIABLE###
+###USE WITH CAUTIOUS#
+my $cfg;my $collection;my $ua;my $data;
+###END GLOBAL V#####
 
-my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
-										username => $cfg->param('username'), password => $cfg->param('password'), 
-										db_name => $cfg->param('dbName'));
-my $database = $client->get_database($cfg->param('dbName'));
-my $collection = $database->get_collection( $cfg->param('dbCollectionData') );
-
-my $ua = LWP::UserAgent->new;
+###MAIN###
+$cfg = new Config::Simple('app.conf');
+connectDb(\$collection);
+$ua = LWP::UserAgent->new;
 $ua->timeout($cfg->param('timeout'));
-
-my $xml = XML::Simple->new;
-my $data = $xml->XMLin($cfg->param('fluxFile'));
+$data = loadFlux();
 
 foreach my $flux (@{ $data->{flux} }){
 	try{
@@ -32,6 +29,22 @@ foreach my $flux (@{ $data->{flux} }){
 	catch{
 		print "Something went wrong while parsing : ".$flux->{desc};
 	}
+}
+###END MAIN###
+
+sub loadFlux{
+	my $xml = new XML::Simple;
+	return $xml->XMLin($cfg->param('fluxFile'));
+}
+
+sub connectDb{
+	my ($collection) = @_;
+	my $client = MongoDB::MongoClient->new(	host => $cfg->param('host'), port => $cfg->param('port'), 
+											username => $cfg->param('username'), password => $cfg->param('password'), 
+											db_name => $cfg->param('dbName'));
+
+	my $database = $client->get_database($cfg->param('dbName'));
+	${$collection} = $database->get_collection( $cfg->param('dbCollectionData') );
 }
 
 #Process every flux, download and then save it into DB
