@@ -5,7 +5,7 @@ Global Variable, i know it s bad
 
 
 (function() {
-  var constructList, delay, isBusy, jQueryFadeSpeed, load, loadData, loadDataAfterOrBefore, months, processAll, processData, processDate, processTrending, selectedDate, setLoaderRotate;
+  var constructList, delay, isBusy, jQueryFadeSpeed, load, loadData, loadDataAfterOrBefore, months, processAll, processData, processDate, processTrending, replaceSVGIntoInlineSVG, selectedDate, setLoaderRotate;
 
   selectedDate = null;
 
@@ -31,6 +31,7 @@ Global Variable, i know it s bad
 
 
   load = function() {
+    replaceSVGIntoInlineSVG();
     delay(1000, loadData);
     $('.leftArrow').click(function() {
       return loadDataAfterOrBefore(-1);
@@ -107,6 +108,7 @@ Global Variable, i know it s bad
     var fadeClass;
     fadeClass = '.fade';
     return $(fadeClass).fadeOut(jQueryFadeSpeed, function() {
+      $('.all').fadeOut(jQueryFadeSpeed);
       processDate(data.date);
       processTrending(data.hot);
       processAll(data.data);
@@ -167,6 +169,35 @@ Global Variable, i know it s bad
     } else {
       return '<p>Their is no availaible data back at that time</p>';
     }
+  };
+
+  /*
+  Replace all SVG images with inline SVG
+  */
+
+
+  replaceSVGIntoInlineSVG = function() {
+    var targetClass;
+    targetClass = 'img.inlineSvg';
+    return $(targetClass).each(function() {
+      var img, imgClass, imgID, imgURL;
+      img = $(this);
+      imgID = img.attr('id');
+      imgClass = img.attr('class');
+      imgURL = img.attr('src');
+      return $.get(imgURL, function(data) {
+        var svg;
+        svg = $(data).find('svg');
+        if (typeof imgID !== 'undefined') {
+          svg = svg.attr('id', imgID);
+        }
+        if (typeof imgClass !== 'undefined') {
+          svg = svg.attr('class', imgClass + ' replaced-svg');
+        }
+        svg = svg.removeAttr('xmlns:a');
+        return img.replaceWith(svg);
+      }, 'xml');
+    });
   };
 
 }).call(this);
