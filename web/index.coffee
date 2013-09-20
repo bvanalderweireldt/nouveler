@@ -1,7 +1,7 @@
 ###
 Global Variable, i know it s bad
 ###
-selectedDate = null
+selectedDate = new Date()
 isBusy = null
 jQueryFadeSpeed = 'slow'
 
@@ -17,7 +17,8 @@ Load data for today
 Activate animation
 ###
 load = () ->
-	delay( 1000, loadData )
+	replaceSVGIntoInlineSVG()
+	delay( 1000, loadFirst )
 	$('.leftArrow').click ->
 		loadDataAfterOrBefore(-1)
 	$('.rightArrow').click ->
@@ -40,7 +41,8 @@ setLoaderRotate = (status) ->
 ###
 Delay Function
 ###
-delay = (ms, func) -> setTimeout func, ms
+delay = (ms, func) -> 
+	setTimeout( func, ms )
 
 loadData = (date) ->
 	setLoaderRotate(true)
@@ -62,15 +64,24 @@ loadDataAfterOrBefore = (day) ->
 		loadData( selectedDate.getTime() / 1000 )
 
 ###
+Function used for the first load, need a static departure value
+###
+loadFirst = () ->
+	loadDataAfterOrBefore(-1)
+
+###
 Fade data + date, then inject new date / hot / data into the document
 ###
 processData = (data) ->
 	fadeClass = '.fade'
-	$(fadeClass).fadeOut(jQueryFadeSpeed, ->
+	$(fadeClass).fadeOut(jQueryFadeSpeed, -> #We need to fadeOut an always display element if we want the call back to be efficient
+		$('.all').fadeOut(jQueryFadeSpeed)
 		processDate ( data.date )
 		processTrending( data.hot )
 		processAll ( data.data )
 		$(fadeClass).fadeIn(jQueryFadeSpeed)
+		$('.data ul li').click ->
+			openSource($(this))
 	)
 
 ###
@@ -104,7 +115,59 @@ constructList = (json) ->
 	if json[0]
 		returnList = '<ul>'
 		for row in json
-			returnList = returnList + '<li>' + row.title + '</li>'
+			returnList = returnList + '<li link=\'' + row.link + '\'>' + row.title + '</li>'
 		return returnList + '</ul>'	
 	else
 		return '<p>Their is no availaible data back at that time</p>'
+
+###
+Replace all SVG images with inline SVG
+###
+replaceSVGIntoInlineSVG = () ->
+	targetClass = 'img.inlineSvg'
+	$(targetClass).each( () ->
+		img = $(this)
+		imgID = img.attr('id')
+		imgClass = img.attr('class')
+		imgURL = img.attr('src')
+	
+		$.get(imgURL, (data) ->
+			#Get the SVG tag, ignore the rest
+			svg = $(data).find('svg')
+
+			#Add replaced image's ID to the new SVG
+			if typeof imgID isnt 'undefined' then svg = svg.attr('id', imgID)
+			
+			#Add replaced image's classes to the new SVG
+			if typeof imgClass isnt 'undefined' then svg = svg.attr('class', imgClass+' replaced-svg')
+			
+
+			#Remove any invalid XML tags as per http://validator.w3.org
+			svg = svg.removeAttr('xmlns:a')
+
+			#Replace image with new SVG
+			img.replaceWith(svg)
+		, 'xml')
+	)
+
+###
+Open a new tab with the given link
+###
+openSource = (element) ->
+	if element.attr('link') and element.attr('link') isnt 'undefined'
+		window.open(element.attr('link'))
+	else
+		old = element.html()
+		element.attr('link', element.html())
+		element.html('Unfortunately their is no recorded source for that !')
+		element.addClass('error')
+		delay(3000, switchBackAllErrorElement)
+
+###
+Switch back error element
+###
+switchBackAllErrorElement = () ->
+	$('.data ul li.error').each( () ->
+		$(this).html($(this).attr('link'))
+		$(this).removeClass('error')
+	)

@@ -1,5 +1,11 @@
 #! /usr/bin/perl
 
+BEGIN{
+	use File::Basename;
+	eval 'use lib "'.dirname(__FILE__).'"';
+	eval 'chdir "'.dirname(__FILE__).'"';
+}
+
 use strict;
 
 use XML::Feed;

@@ -1,5 +1,11 @@
 #! /usr/bin/env perl
 
+BEGIN{
+	use File::Basename;
+	eval 'use lib "'.dirname(__FILE__).'"';
+	eval 'chdir "'.dirname(__FILE__).'"';
+}
+
 use strict;
 
 use DateTime qw();
@@ -13,7 +19,7 @@ use Data::Dumper; #TODO DELETE ONLY USE FOR TESTING PURPOSE
 
 ###GLOBAL VARIABLE###
 ###USE WITH CAUTIOUS#
-my $numberOfDaysToScan = 1;my $collection;my $hot;my $cfg;my $commonMatch;##TODO CLEAN ALL THAT MESS....
+my $numberOfDaysToScan = 1;my $collection;my $hot;my $cfg;my $commonMatch;my $minMatchSentenceTrigger; my $minMatchNewsTrigger;my $minLevenshteinPercMatch;##TODO CLEAN ALL THAT MESS....
 ###END GLOBAL V#####
 
 my ($arg) = @ARGV;
@@ -25,8 +31,12 @@ if(defined $arg){
 ###MAIN###
 $cfg = new Config::Simple('app.conf'); ###Load conf
 connectDb(\$collection, \$hot);###Connect DB
-loadFlux();###Load every RSS flux
+
 $commonMatch = $cfg->param('macthCommonWord');###LOAD COMMON MATCH, DON'T WANT TO BE LOAD FROM CONF FOR EVERY COMPARAISON
+$minMatchSentenceTrigger = $cfg->param('minMatchSentenceTrigger');###LOAD COMMON MATCH, DON'T WANT TO BE LOAD FROM CONF FOR EVERY COMPARAISON
+$minMatchNewsTrigger = $cfg->param('minMatchNewsTrigger');###LOAD COMMON MATCH, DON'T WANT TO BE LOAD FROM CONF FOR EVERY COMPARAISON
+$minLevenshteinPercMatch = $cfg->param('minLevenshteinPercMatch');###LOAD COMMON MATCH, DON'T WANT TO BE LOAD FROM CONF FOR EVERY COMPARAISON
+
 analyse($numberOfDaysToScan);
 ###END MAIN###
 
@@ -38,18 +48,9 @@ sub analyse{
 	for (my $var = 0; $var < $numberOfDaysToScan; $var++) {
 		buildDate($var, \$dayFrom, \$dayTo);
 
-		my $data = loadFlux();
-		foreach my $cat (@{ $data->{category}->{category} }){
-			processCat($cat, $dayFrom, $dayTo);
-		}
 		my $allLastData = $collection->find({ issued => {'$gt' => $dayFrom, '$lt' => $dayTo } });
-		processData($allLastData, $cfg->param('superCat'), $cfg->param('minMatchAllTrigger'), $dayFrom);	
+		processData($allLastData, $dayFrom, $dayTo);	
 	}
-}
-
-sub loadFlux{
-	my $xml = new XML::Simple;
-	return $xml->XMLin($cfg->param('fluxFile'));
 }
 
 sub connectDb{
@@ -76,75 +77,74 @@ sub buildDate{
 
 }
 
-sub processCat{
-	my ($cat, $dayFrom, $dayTo) = @_ ;
-	my $lastData = $collection->find({ issued => {'$gt' => $dayFrom, '$lt' => $dayTo }, category => $cat });
-	processData( $lastData, $cat, $cfg->param('minMatchCatTrigger'), $dayFrom );
-}
-
 sub processData{
-	my ($lastData, $cat, $matchMin, $dayFrom ) = @_;
-	$matchMin = 2 unless defined $matchMin;
+	my ($lastData, $dayFrom, $dayTo ) = @_;
+	$minMatchNewsTrigger = 5 if ! defined $minMatchNewsTrigger;
 
-	my @objects = $lastData->all;
+	my @objects = $lastData->all; #Our array of news
+	my @hotTmp;
+	my $element;
 
-	while (scalar(@objects) > 0){
-		my $element = pop @objects;
-		my @hotTmp = ();
-		foreach my $index (0 .. $#objects) {
-			if(asAtLeasXCommonWords($element->{title}, $objects[$index]->{title})){
-				if(scalar(compare( $element->{title}, $objects[$index]->{title} ) < $cfg->param('minLevenshteinPercMatch') ) ){
-					my $tmpVar = $objects[$index]->{title};
-					push @hotTmp, $tmpVar;
-					delete $objects[$index];
-					@objects = grep defined, @objects;
-				}
-			}
-		}
-		@hotTmp = grep defined, @hotTmp;
+	while ( @objects ){
+		$element = pop @objects;
+		@hotTmp = ();
+		lookForSimilarSentence( \$element, \@objects, \@hotTmp );
 
-		if(scalar(@hotTmp) > 0){
-			push @hotTmp, $element->{title};
-		}
-		if(scalar(@hotTmp) >= $matchMin){
+		if(scalar( @hotTmp ) >= $minMatchNewsTrigger){
 			#Here we need to select only one title to save, the first in array is the one that have been compared to every other title,
 			#it's the link between all this titles.
-			my $title = shift ( @hotTmp );
-			next if defined $hot->find_one({ title => $title, category => $cat });
-		    $hot->insert({ 	category => $cat, 
-									title => $title,
-									date => $dayFrom });
+			next if defined $hot->find_one( { title => ${$hotTmp[0]}, date => { '$gt' => $dayFrom, '$lt' => $dayTo } } );
+		    $hot->insert({ 	title => ${$hotTmp[0]}, 
+		    				date => $dayFrom,
+		    				link => ${$hotTmp[1]} });
+		}
+	}
+}
+
+sub lookForSimilarSentence{
+	my ($sentence, $sentences, $result) = @_;
+
+	for (my $i = 0; $i < @{ $sentences }.length; $i++) {
+		next unless defined @{ $sentences }[$i];
+		if( compareTwoSentences ( \${ $sentence }->{title}, \@{ $sentences }[$i]->{title} ) ) {
+			push ( @{ $result }, ( \@{ $sentences }[$i]->{title}, \@{ $sentences }[$i]->{link} ) );
+			my $sentenceCopy = @{ $sentences }[$i];
+			undef @{ $sentences }[$i];
+			lookForSimilarSentence( \$sentenceCopy, $sentences, $result );
 		}
 	}
 }
 
 #Compare two strings, return percentage base difference, 0 mean no difference
-sub compare{
-	my $distance = distance $_[0], $_[1];
-	my $aLike = int((length($_[0]) + length($_[1])) / 2);
+sub compareTwoWords{
+	my $distance = distance ${@_[0]}, ${@_[1]}; #Compute the Levenshtein distance
+	my $aLike = int((length(${@_[0]}) + length(${@_[1]})) / 2); #Average size of both strings
 	return 0 if $distance == 0;
 	return ( ( $distance * 100 ) / $aLike );
 }
 
-#Return true if the two given words have at least two common words
-sub asAtLeasXCommonWords{
-	my $X = 2;
-	my $match = 0;
-	my @words = split( ' ', $_[0] );
-
-	foreach my $word (@words){
-		next if $word =~ m/\W/gi; #We don't want to match non word character, and we need to clean the string before inject it into a regex
-		next if $word =~ m/^($commonMatch|\W+|\s+)$/i; #We don't want to math common word
-		try{
-			if($_[1] =~ m/$word/g){
+#Compare two strings, return percentage base difference, 0 mean no difference
+sub compareTwoSentences{
+	$minMatchSentenceTrigger = 4 if ! defined $minMatchSentenceTrigger;
+	$minLevenshteinPercMatch = 30 if ! defined $minLevenshteinPercMatch ;
+	foreach(@_){$$_ = lc $$_;}; #Force both string to lower case
+	my @sentence2 = split( ' ', ${@_[0]} );
+	my $match=0;
+	foreach my $wordSentence1 (split( ' ', ${@_[1]})){
+		next unless isASignificativeWord(\$wordSentence1);
+		foreach my $wordSentence2 (@sentence2){
+			if( compareTwoWords( \$wordSentence1, \$wordSentence2 ) < $minLevenshteinPercMatch ) {
 				$match++;
-				last if $match == $X;
-			}			
-		}
-		catch{
-			print "Invalid regex for : ".$word;
-			next;
+			}
+			last if $match > $minMatchSentenceTrigger;
 		}
 	}
-	return $match == $X ? 1 : 0;
+	return ( $match > $minMatchSentenceTrigger ) ? 1 : 0;
+}
+
+#Return false if the word is a special character, or match any common English word
+sub isASignificativeWord{
+	return 0 if ${$_[0]} =~ m/\W/gi; #We don't want to match non word character, and we need to clean the string before inject it into a regex
+	return 0 if ${$_[0]} =~ m/^($commonMatch|\W+|\s+)$/i; #We don't want to math common word
+	return 1;
 }
