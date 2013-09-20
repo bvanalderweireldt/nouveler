@@ -44,8 +44,8 @@ $dateTo->set_minute(59);
 $logger->debug($dateFrom);
 $logger->debug($dateTo);
 
-my $allData = $collection->find( { issued => {'$gt' => $dateFrom, '$lt' => $dateTo }  } )->fields({ 'title' => 1, 'category' => 1, '_id' => 0});
-my $allHot = $hot->find( { date => {'$gt' => $dateFrom, '$lt' => $dateTo } } )->fields({ 'title' => 1, 'category' => 1, '_id' => 0});
+my $allData = $collection->find( { issued => {'$gt' => $dateFrom, '$lt' => $dateTo }  } )->fields({ 'title' => 1, 'link' => 1, '_id' => 0});
+my $allHot = $hot->find( { date => {'$gt' => $dateFrom, '$lt' => $dateTo } } )->fields({ 'title' => 1, 'link' => 1, '_id' => 0});
 
 print "Content-type:application/json\n\n";
 

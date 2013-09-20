@@ -5,9 +5,9 @@ Global Variable, i know it s bad
 
 
 (function() {
-  var constructList, delay, isBusy, jQueryFadeSpeed, load, loadData, loadDataAfterOrBefore, months, processAll, processData, processDate, processTrending, replaceSVGIntoInlineSVG, selectedDate, setLoaderRotate;
+  var constructList, delay, isBusy, jQueryFadeSpeed, load, loadData, loadDataAfterOrBefore, loadFirst, months, openSource, processAll, processData, processDate, processTrending, replaceSVGIntoInlineSVG, selectedDate, setLoaderRotate, switchBackAllErrorElement;
 
-  selectedDate = null;
+  selectedDate = new Date();
 
   isBusy = null;
 
@@ -32,7 +32,7 @@ Global Variable, i know it s bad
 
   load = function() {
     replaceSVGIntoInlineSVG();
-    delay(1000, loadData);
+    delay(1000, loadFirst);
     $('.leftArrow').click(function() {
       return loadDataAfterOrBefore(-1);
     });
@@ -100,6 +100,15 @@ Global Variable, i know it s bad
   };
 
   /*
+  Function used for the first load, need a static departure value
+  */
+
+
+  loadFirst = function() {
+    return loadDataAfterOrBefore(-1);
+  };
+
+  /*
   Fade data + date, then inject new date / hot / data into the document
   */
 
@@ -112,7 +121,10 @@ Global Variable, i know it s bad
       processDate(data.date);
       processTrending(data.hot);
       processAll(data.data);
-      return $(fadeClass).fadeIn(jQueryFadeSpeed);
+      $(fadeClass).fadeIn(jQueryFadeSpeed);
+      return $('.data ul li').click(function() {
+        return openSource($(this));
+      });
     });
   };
 
@@ -163,7 +175,7 @@ Global Variable, i know it s bad
       returnList = '<ul>';
       for (_i = 0, _len = json.length; _i < _len; _i++) {
         row = json[_i];
-        returnList = returnList + '<li>' + row.title + '</li>';
+        returnList = returnList + '<li link=\'' + row.link + '\'>' + row.title + '</li>';
       }
       return returnList + '</ul>';
     } else {
@@ -197,6 +209,36 @@ Global Variable, i know it s bad
         svg = svg.removeAttr('xmlns:a');
         return img.replaceWith(svg);
       }, 'xml');
+    });
+  };
+
+  /*
+  Open a new tab with the given link
+  */
+
+
+  openSource = function(element) {
+    var old;
+    if (element.attr('link') && element.attr('link') !== 'undefined') {
+      return window.open(element.attr('link'));
+    } else {
+      old = element.html();
+      element.attr('link', element.html());
+      element.html('Unfortunately their is no recorded source for that !');
+      element.addClass('error');
+      return delay(3000, switchBackAllErrorElement);
+    }
+  };
+
+  /*
+  Switch back error element
+  */
+
+
+  switchBackAllErrorElement = function() {
+    return $('.data ul li.error').each(function() {
+      $(this).html($(this).attr('link'));
+      return $(this).removeClass('error');
     });
   };
 

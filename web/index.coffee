@@ -1,7 +1,7 @@
 ###
 Global Variable, i know it s bad
 ###
-selectedDate = null
+selectedDate = new Date()
 isBusy = null
 jQueryFadeSpeed = 'slow'
 
@@ -18,7 +18,7 @@ Activate animation
 ###
 load = () ->
 	replaceSVGIntoInlineSVG()
-	delay( 1000, loadData )
+	delay( 1000, loadFirst )
 	$('.leftArrow').click ->
 		loadDataAfterOrBefore(-1)
 	$('.rightArrow').click ->
@@ -41,7 +41,8 @@ setLoaderRotate = (status) ->
 ###
 Delay Function
 ###
-delay = (ms, func) -> setTimeout func, ms
+delay = (ms, func) -> 
+	setTimeout( func, ms )
 
 loadData = (date) ->
 	setLoaderRotate(true)
@@ -63,6 +64,12 @@ loadDataAfterOrBefore = (day) ->
 		loadData( selectedDate.getTime() / 1000 )
 
 ###
+Function used for the first load, need a static departure value
+###
+loadFirst = () ->
+	loadDataAfterOrBefore(-1)
+
+###
 Fade data + date, then inject new date / hot / data into the document
 ###
 processData = (data) ->
@@ -73,6 +80,8 @@ processData = (data) ->
 		processTrending( data.hot )
 		processAll ( data.data )
 		$(fadeClass).fadeIn(jQueryFadeSpeed)
+		$('.data ul li').click ->
+			openSource($(this))
 	)
 
 ###
@@ -106,7 +115,7 @@ constructList = (json) ->
 	if json[0]
 		returnList = '<ul>'
 		for row in json
-			returnList = returnList + '<li>' + row.title + '</li>'
+			returnList = returnList + '<li link=\'' + row.link + '\'>' + row.title + '</li>'
 		return returnList + '</ul>'	
 	else
 		return '<p>Their is no availaible data back at that time</p>'
@@ -141,3 +150,24 @@ replaceSVGIntoInlineSVG = () ->
 		, 'xml')
 	)
 
+###
+Open a new tab with the given link
+###
+openSource = (element) ->
+	if element.attr('link') and element.attr('link') isnt 'undefined'
+		window.open(element.attr('link'))
+	else
+		old = element.html()
+		element.attr('link', element.html())
+		element.html('Unfortunately their is no recorded source for that !')
+		element.addClass('error')
+		delay(3000, switchBackAllErrorElement)
+
+###
+Switch back error element
+###
+switchBackAllErrorElement = () ->
+	$('.data ul li.error').each( () ->
+		$(this).html($(this).attr('link'))
+		$(this).removeClass('error')
+	)
