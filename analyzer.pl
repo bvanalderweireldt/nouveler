@@ -89,11 +89,10 @@ sub processData{
 		$element = pop @objects;
 		@hotTmp = ();
 		lookForSimilarSentence( \$element, \@objects, \@hotTmp );
-
 		if(scalar( @hotTmp ) >= $minMatchNewsTrigger){
 			#Here we need to select only one title to save, the first in array is the one that have been compared to every other title,
 			#it's the link between all this titles.
-			next if defined $hot->find_one( { title => ${$hotTmp[0]}, date => { '$gt' => $dayFrom, '$lt' => $dayTo } } );
+			next if defined $hot->find_one( { title => ${$hotTmp[0]}, date => { '$gte' => $dayFrom, '$lte' => $dayTo } } );
 		    $hot->insert({ 	title => ${$hotTmp[0]}, 
 		    				date => $dayFrom,
 		    				link => ${$hotTmp[1]} });

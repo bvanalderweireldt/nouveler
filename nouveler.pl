@@ -60,7 +60,7 @@ sub processFlux{
 
 	my $response = $ua->get($flux->{address});
 	
-	print "Can't get : ".$flux->{address} and return if $response->is_error;
+	print "Can't get : ".$flux->{address}."\n" and return if $response->is_error;
 
 	my $feed = XML::Feed->parse(\$response->content)
 	    or die XML::Feed->errstr;

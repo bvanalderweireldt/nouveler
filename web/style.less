@@ -20,13 +20,12 @@
 	src: url('font/SansitaOne.ttf'),
 }
 
-body{
-	height: auto;
-	width: 100%;
-	margin: 0;
-	padding: 0;
+html, body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
 }
-
 /*Clock*/
 .clock{
 	position: absolute;
@@ -207,6 +206,36 @@ body{
 		}
 		li.error{
 			background-color: red;
+		}
+	}
+}
+
+footer{
+	background-color: @background;
+	width: 12%;
+	height: 10em;
+	position: fixed;
+	top: 17em;
+	right: 1em;
+	margin: 5em 0 0 0;
+	padding: 0.5em 0;
+	text-align: center;
+	box-shadow: 10px -10px 5px #888888;
+	border: 1px solid saturate( @dataColor, 15% );
+	ul{
+		li{
+			margin: 0.3em 0;
+			font: SansitaOne Arial;
+			font-size: 0.8em;
+			list-style-type: none;
+			padding: 0;
+			a{
+				color: saturate( @dataColor, 15% );
+				text-decoration: none;
+			}
+			a:hover{
+				text-decoration: underline;
+			}
 		}
 	}
 }
