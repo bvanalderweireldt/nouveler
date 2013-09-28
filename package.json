@@ -1,0 +1,33 @@
+{
+  "name": "nouveler",
+  "version": "0.0.0",
+  "description": "Scrapp news from RSS feeds, analyze it and display 'hot' feeds into a simple front end.",
+  "main": "Gruntfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bvanalderweireldt/nouveler.git"
+  },
+  "keywords": [
+    "nouveler",
+    "news",
+    "scrapp",
+    "perl",
+    "less",
+    "mongodb"
+  ],
+  "author": "Benoit Vanalderweireldt",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/bvanalderweireldt/nouveler/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "grunt-contrib": "~0.7.0",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-less": "~0.7.0",
+    "grunt-contrib-watch": "~0.5.3"
+  }
+}
